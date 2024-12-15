@@ -9,7 +9,7 @@ vim全局插件用来为vim添加中文搜索支持
 - 首字母简拼搜索
 - 全拼和首字母简拼混合搜索
 - 不限制搜索长度
-- 支持使用'进行拼音拆分，如把`xian`使用`xi'an`拆分识别为`xi an`两个拼音
+- 支持使用'进行拼音拆分，如把`xian`使用`xi'an`拆分识别为`xi an`两个拼音，这样可以识别西安或先类似的字符
 - 支持正向，反向搜索
 - 支持搜索后使用`n`,`N`命令导航
 - 支持多音字搜索，如萝卜既可以使用`luobo`进行搜索，也可以使用`luobu`来进行搜索
@@ -36,7 +36,7 @@ nnoremap <leader>? <Plug>chinese-support-search-backward;
 ## 全拼搜索
 
 ## 首字母搜索
-
+![首字母搜索演示](https://github.com/xuanyusa/reference/blob/b3c1f48a3dfe9df0aa0ce0b00a3014959941f10d/vim/chinese-support/szm.gif)
 ## 混合搜索
 
 ## 单引号'拆分
