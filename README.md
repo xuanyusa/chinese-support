@@ -7,6 +7,7 @@ vim全局插件用来为vim添加中文搜索支持
 # 支持的功能
 - 全拼搜索
 - 首字母简拼搜索
+- 首字母简拼搜索支持区分平舌和翘舌音，如z、c、s和zh、ch、sh
 - 全拼和首字母简拼混合搜索
 - 不限制搜索长度
 - 支持使用'进行拼音拆分，如把`xian`使用`xi'an`拆分识别为`xi an`两个拼音，这样可以识别西安或先类似的字符
@@ -34,11 +35,14 @@ nnoremap <leader>? <Plug>chinese-support-search-backward;
 # 示例
 
 ## 全拼搜索
+![全拼搜索演示](https://github.com/xuanyusa/reference/blob/89c9cb6b7e8b06caa3283e6e049f667f25f90b0f/vim/chinese-support/quanpin.gif)
 
 ## 首字母搜索
-![首字母搜索演示](https://github.com/xuanyusa/reference/blob/b3c1f48a3dfe9df0aa0ce0b00a3014959941f10d/vim/chinese-support/szm.gif)
+![首字母搜索演示](https://github.com/xuanyusa/reference/blob/89c9cb6b7e8b06caa3283e6e049f667f25f90b0f/vim/chinese-support/szm.gif)
+
 ## 混合搜索
+![混合搜索演示](https://github.com/xuanyusa/reference/blob/89c9cb6b7e8b06caa3283e6e049f667f25f90b0f/vim/chinese-support/hunhe.gif)
 
 ## 单引号'拆分
-
+![单引号拆分演示](https://github.com/xuanyusa/reference/blob/89c9cb6b7e8b06caa3283e6e049f667f25f90b0f/vim/chinese-support/danyinhao.gif)
 
