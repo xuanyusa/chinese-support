@@ -19,7 +19,7 @@ vim全局插件用来为vim添加中文搜索支持
 ```
 let g:mapleader = ' '
 ```
-把<leader>设置为空格。如果没有修改`g:mapleader`，缺省为`\\`。
+把<leader>设置为空格。如果没有修改`g:mapleader`，缺省为`\`。
 当然根据个人使用习惯也可以映射命令修改搜索使用的快捷键，只需要使用`nnoremap`来映射`<Plug>chinese-support-search-forward;`和`<Plug>chinese-support-search-backward;`即可。设置参考下面的例子，把<leader>/和<leader>?修改想要映射的按键。
 ```
 " 正向搜索
