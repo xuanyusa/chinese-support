@@ -18,7 +18,9 @@ endfunction
 
 function! chinese_support#_echohl(hl, msg)
     if empty(a:msg) | return | endif
-    execute 'echohl '.a:hl
+    execute 'echohl '.. a:hl
+    echo ''
+    redraw
     echomsg a:msg
     echohl None
 endfunction
