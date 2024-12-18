@@ -4,6 +4,32 @@
 # 介绍
 在vim中，搜索中文需要切换输入法，然后输入中文进行搜索。使用chinese-support可以不用切换输入法，直接使用拼音进行搜索。并且该插件支持首字母搜索，全拼搜索，或者两种方式的混合搜索。
 
+# 安装
+
+### Pathogen (https://github.com/tpope/vim-pathogen)
+
+```
+git clone https://github.com/xuanyusa/chinese-support.git ~/.vim/bundle/chinese-support
+```
+
+### Vundle (https://github.com/gmarik/vundle)
+
+```
+Plugin 'xuanyusa/chinese-support'
+```
+
+### Vim-Plug (https://github.com/junegunn/vim-plug)
+
+```
+Plug 'xuanyusa/chinese-support'
+```
+
+### Vim8 Native Plugin Manager (https://vimhelp.org/repeat.txt.html#packages)
+
+```
+git clone https://github.com/xuanyusa/chinese-support.git ~/.vim/pack/plugins/start/chinese-support
+```
+
 # 依赖
 使用vim脚本语言编写，没有额外依赖
 
@@ -17,6 +43,7 @@
 - 支持正向，反向搜索
 - 支持搜索后使用`n`,`N`命令导航
 - 支持多音字搜索，如萝卜既可以使用`luobo`进行搜索，也可以使用`luobu`来进行搜索
+- 支持gn文本对象，如cgn, ygn, dgn
 
 # 缺省绑定
 缺省情况下chinese-support使用`<leader>/`和`<leader>?`来映射正向搜索和反向搜索，可以设置`g:mapleader`变量来修改映射的首字符，如

@@ -21,7 +21,7 @@ let s:pinyin_regexp = s:pinyin_meta_regexp .. '|' .. s:szm_meta_regexp
 let s:pinyin_regexp_full = '\v\c^(' .. s:pinyin_regexp .. ")('?" .. s:pinyin_regexp .. ")*$"
 let s:dict = {}
 let s:dict_name = expand('<sfile>:p:h') .. '/chinese.dict'
-function LoadDict()
+function LoadDict() abort
     if !empty(s:dict)
         return
     endif
@@ -33,7 +33,6 @@ endfunction
 call LoadDict()
 
 let s:delimiter = ','
-let s:matches = []
 let s:loc = []
 " 是否使用了中文搜索
 let s:chinese_search = 0
@@ -45,20 +44,18 @@ let s:last_direction = 1
 let s:last_hit_top_bottom = 0
 " 最后一次搜索的目标中文长度
 let s:last_len = 0
+let s:chinese_prop_type = 'chinese_support_pinyin'
+call prop_type_add(s:chinese_prop_type, {'highlight': 'Search'})
 
-function! ClearSearchResult()
-    if !empty(s:matches)
-        for id in s:matches
-            call matchdelete(id)
-        endfor
-        call remove(s:matches, 0, len(s:matches) - 1)
-    endif
+
+function! ClearSearchResult() abort
     if !empty(s:loc)
+        call ClearHighlight()
         call remove(s:loc, 0, len(s:loc) - 1)
     endif
 endfunction
 
-function! SearchChinese(pattern, len, direction, remember_direction)
+function! SearchChinese(pattern, len, direction, remember_direction) abort
     call ClearSearchResult()
     if a:remember_direction
         let s:last_direction = a:direction
@@ -80,9 +77,7 @@ function! SearchChinese(pattern, len, direction, remember_direction)
             let s:last_len = a:len
             let move = MoveCursor2Next(s:loc, a:direction)
             if move
-                let match_id = matchaddpos('Search', s:loc->mapnew({_,v->v[0:2]}))
-                call add(s:matches, match_id)
-                call chinese_support#log(s:matches) 
+                call prop_add_list({'type': s:chinese_prop_type}, s:loc->mapnew({_,v->v[:1] + [v[0], v[1] + v[2]]}))
                 call chinese_support#log(s:loc) 
                 return 1
             elseif GotoNextPage(hit_top_bottom, a:direction)
@@ -101,7 +96,7 @@ function! SearchChinese(pattern, len, direction, remember_direction)
     endwhile
 endfunction
 
-function! GotoNextPageWhenNotHitEdge(direction)
+function! GotoNextPageWhenNotHitEdge(direction) abort
     if a:direction
         execute "normal! \<c-f>0"
     else 
@@ -110,7 +105,7 @@ function! GotoNextPageWhenNotHitEdge(direction)
     return 1
 endfunction
 
-function! GotoNextPageWhenHitEdge(direction)
+function! GotoNextPageWhenHitEdge(direction) abort
     if &wrapscan
         if a:direction
             execute 'normal! gg0'
@@ -123,7 +118,7 @@ function! GotoNextPageWhenHitEdge(direction)
     endif
 endfunction
 
-function! GotoNextPage(hit_top_bottom, direction)
+function! GotoNextPage(hit_top_bottom, direction) abort
     if a:hit_top_bottom
         return GotoNextPageWhenHitEdge(a:direction)
     else
@@ -131,7 +126,7 @@ function! GotoNextPage(hit_top_bottom, direction)
     endif   
 endfunction
 
-function! FindMatches(pattern, len, start_line_num, direction)
+function! FindMatches(pattern, len, start_line_num, direction) abort
     let hit_top_bottom = 0
     let reach_start = 0
     let w0_lnum = line('w0')
@@ -179,14 +174,14 @@ function! FindMatches(pattern, len, start_line_num, direction)
     return [hit_top_bottom, reach_start]
 endfunction
 
-function MyLocSort(a,b)
+function MyLocSort(a,b) abort
     if a:a[0] == a:b[0]
         return a:a[1] - a:b[1]
     endif
     return a:a[0] - a:b[0]
 endfunction
 
-function! MoveCursor2Next(match_pos_list, direction)
+function! MoveCursor2Next(match_pos_list, direction) abort
     let cur_cursor = getcurpos()
     call chinese_support#log('当前光标位置 ' .. string(cur_cursor[1:2]) )
     call chinese_support#log('当前匹配位置列表 ' .. string(a:match_pos_list))
@@ -197,7 +192,9 @@ function! MoveCursor2Next(match_pos_list, direction)
     else
         let list = a:match_pos_list->copy()->reverse()
     endif
-    let idx = list->indexof('(v:val[0]==cur_cursor[1] && v:val[1] ' .. op .. ' cur_cursor[2]) || v:val[0] ' .. op .. 'cur_cursor[1]')
+    let idx = list->indexof('(v:val[0]==cur_cursor[1] && v:val[1] ' .. 
+                \ op .. ' cur_cursor[2]) || v:val[0] ' .. 
+                \ op .. 'cur_cursor[1]')
     if idx < 0 || idx >= len(s:loc)
         return 0
     endif
@@ -210,7 +207,7 @@ endfunction
 "     return a:chars =~ '\v^[\u4e00-\u9fff]+$'
 " endfunction
 
-function! IsChineseForChar(char)
+function! IsChineseForChar(char) abort
     let nr = char2nr(a:char)
     if nr >= 0x4e00 && nr <= 0x9fff
         return 1
@@ -218,7 +215,7 @@ function! IsChineseForChar(char)
     return 0
 endfunction
 
-function! IsChineseForChars(chars)
+function! IsChineseForChars(chars) abort
     for c in a:chars
         if !IsChineseForChar(c)
             return 0
@@ -227,7 +224,7 @@ function! IsChineseForChars(chars)
     return 1
 endfunction
 
-function! Translate(lines)
+function! Translate(lines) abort
     let pinyin_lines = []
     for l in a:lines
         if empty(l)
@@ -251,7 +248,7 @@ function! Translate(lines)
     return pinyin_lines
 endfunction
 
-function! SplitPinYin(pinyin)
+function! SplitPinYin(pinyin) abort
     " let p = '\v[^aoeiuv]?h?[iuv]?(ai|ei|ao|ou|er|ang?|eng?|ong|a|o|e|i|u|ng|n)?'
     let p = "\\v^'?" .. s:pinyin_regexp
     let py = a:pinyin
@@ -272,7 +269,7 @@ function! SplitPinYin(pinyin)
     return r
 endfunction
 
-function! s:MySearch(direction)
+function! s:MySearch(direction) abort
     let s:last_pattern = @/
     let @/=''
     nohls
@@ -324,25 +321,37 @@ augroup ChineseSupportSearch
     autocmd!
     autocmd CmdlineLeave / call ClearSetup()
     autocmd CmdlineLeave : call ClearMatchesHighlight()
+    autocmd TextChanged,TextChangedI * call RefreshSearchResult()
 augroup END
 
-function! ClearSetup()
+function! RefreshSearchResult() abort
+    " let wv_origin = winsaveview()
+    if s:chinese_search
+        call ClearSearchResult()
+        call FindMatches(s:last_pattern, s:last_len, -1, 1)
+        call prop_add_list({'type': s:chinese_prop_type}, s:loc->mapnew({_,v->v[:1] + [v[0], v[1] + v[2]]}))
+    endif
+    " call winrestview(wv_origin)
+endfunction
+
+function! ClearSetup() abort
     call chinese_support#log('命令行类型 -> ' .. getcmdtype()) 
     let s:chinese_search = 0    
     call ClearSearchResult()
 endfunction
 
-function! ClearMatchesHighlight()
+function! ClearMatchesHighlight() abort
     let cmdline = getcmdline()
-    call chinese_support#log('命令行内容 -> ' .. cmdline) 
     let fullcmdline = fullcommand(cmdline)
-    call chinese_support#log('完整命令行内容 -> ' .. fullcmdline) 
-    if fullcmdline == 'nohlsearch' && !empty(s:matches)
-        for id in s:matches
-            call matchdelete(id)
-        endfor 
-        call remove(s:matches, 0, len(s:matches) - 1)
+    if fullcmdline == 'nohlsearch' && !empty(s:loc)
+        call ClearHighlight()
     endif
+endfunction
+
+function! ClearHighlight() abort
+        for [lnum; rest] in s:loc
+            call prop_remove({'type': s:chinese_prop_type, 'all': 1}, lnum)
+        endfor 
 endfunction
 
 nnoremap <silent> n :silent call DoAfternN('n')<CR>
@@ -351,8 +360,10 @@ nnoremap <silent> * :silent call ClearSetup()<CR>*
 nnoremap <silent> # :silent call ClearSetup()<CR>#
 nnoremap <silent> g* :silent call ClearSetup()<CR>g*
 nnoremap <silent> g# :silent call ClearSetup()<CR>g#
+noremap <silent> gn :silent call DoAfterGn()<CR>
+" nnoremap <silent> gn :silent call DoAfterGn()<CR>
 
-function! DoAfternN(command)
+function! DoAfternN(command) abort
     call chinese_support#log(a:command .. " command executed") 
     if !s:chinese_search
         execute "normal! " .. a:command
@@ -376,6 +387,48 @@ function! DoAfternN(command)
     else
         return
     endif
+endfunction
+
+
+function! DoAfterGn() abort
+    call chinese_support#log("gn command executed") 
+    if !s:chinese_search
+        execute "normal! gn"
+        return
+    endif
+    call chinese_support#log("执行中文模式的gn")
+    let wv_origin = winsaveview()
+    let m = CursorIsOnMatch()
+    if !empty(m)
+        call cursor(m[:1]) 
+        call SelectGn()
+    elseif MoveCursor2Next(s:loc, 1)
+        call SelectGn()
+    elseif GotoNextPage(s:last_hit_top_bottom, 1)
+        let hit =  SearchChinese(s:last_pattern, s:last_len, 1, 0)
+        if hit
+        call SelectGn()
+        else
+            call chinese_support#log('没有找到匹配' .. s:last_pattern .. '的中文') 
+            call winrestview(wv_origin)
+        endif
+    else
+    endif
+endfunction
+
+function! SelectGn() abort
+    execute 'normal! v' .. (s:last_len - 1) .. 'l'
+endfunction
+
+function! CursorIsOnMatch() abort
+    let cur_cursor = getcurpos()
+    let idx = s:loc->indexof('v:val[0]==cur_cursor[1] ' .. 
+                \ '&& v:val[1] <= cur_cursor[2] ' .. 
+                \ '&& v:val[1] + v:val[2] >= cur_cursor[2]')
+    if idx >= 0 && idx < len(s:loc)
+        return s:loc[idx]
+    endif
+    return []
 endfunction
 
 let &cpo = s:cpo_save
