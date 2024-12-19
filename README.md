@@ -31,7 +31,7 @@ git clone https://github.com/xuanyusa/chinese-support.git ~/.vim/pack/plugins/st
 ```
 
 # 依赖
-使用vim脚本语言编写，没有额外依赖
+使用vim脚本语言编写，没有额外依赖，但由于功能中使用的函数原因，目前支持vim8.2以上的版本
 
 # 支持的功能
 - 全拼搜索
