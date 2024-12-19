@@ -77,7 +77,7 @@ function! SearchChinese(pattern, len, direction, remember_direction) abort
             let s:last_len = a:len
             let move = MoveCursor2Next(s:loc, a:direction)
             if move
-                call prop_add_list({'type': s:chinese_prop_type}, s:loc->mapnew({_,v->v[:1] + [v[0], v[1] + v[2]]}))
+                call prop_add_list({'type': s:chinese_prop_type}, MapNew(s:loc,function('GetPropAddList')))
                 call chinese_support#log(s:loc) 
                 return 1
             elseif GotoNextPage(hit_top_bottom, a:direction)
@@ -94,6 +94,18 @@ function! SearchChinese(pattern, len, direction, remember_direction) abort
             call GotoNextPageWhenNotHitEdge(a:direction)
         endif
     endwhile
+endfunction
+
+function! MapNew(list, funcref) abort
+    let result = []
+    if empty(a:list)
+        return result
+    endif
+    for i in range(len(a:list))
+        let e = a:funcref(i, a:list[i])
+        let result += [e]
+    endfor
+    return result
 endfunction
 
 function! GotoNextPageWhenNotHitEdge(direction) abort
@@ -186,21 +198,35 @@ function! MoveCursor2Next(match_pos_list, direction) abort
     call chinese_support#log('当前光标位置 ' .. string(cur_cursor[1:2]) )
     call chinese_support#log('当前匹配位置列表 ' .. string(a:match_pos_list))
     let list = a:match_pos_list
-    let op = '<'
+    let idx = -1
     if a:direction
-        let op = '>'
+        let idx = FindIndex(list, function('IndexOfMatchForward'))
     else
         let list = a:match_pos_list->copy()->reverse()
+        let idx = FindIndex(list, function('IndexOfMatchBackward'))
     endif
-    let idx = list->indexof('(v:val[0]==cur_cursor[1] && v:val[1] ' .. 
-                \ op .. ' cur_cursor[2]) || v:val[0] ' .. 
-                \ op .. 'cur_cursor[1]')
     if idx < 0 || idx >= len(s:loc)
         return 0
     endif
     call cursor(list[idx][:1])
     call chinese_support#log('移动后光标位置' .. string(getcurpos()[1:2]))
     return 1
+endfunction
+
+function! IndexOfMatchForward(loc)
+    let cur_cursor = getcurpos()
+    if (a:loc[0]==cur_cursor[1] && a:loc[1]>cur_cursor[2]) || a:loc[0]>cur_cursor[1]
+        return 1
+    endif
+    return 0
+endfunction
+
+function! IndexOfMatchBackward(loc)
+    let cur_cursor = getcurpos()
+    if (a:loc[0]==cur_cursor[1] && a:loc[1]<cur_cursor[2]) || a:loc[0]<cur_cursor[1]
+        return 1
+    endif
+    return 0
 endfunction
 
 " function! IsChinese(chars)
@@ -308,10 +334,10 @@ function! s:MySearch(direction) abort
 endfunction
 
 if !hasmapto('<Plug>chinese-support-search-forward;')
-    nnoremap <leader>/ <Plug>chinese-support-search-forward;
+    nmap <leader>/ <Plug>chinese-support-search-forward;
 endif
 if !hasmapto('<Plug>chinese-support-search-backward;')
-    nnoremap <leader>? <Plug>chinese-support-search-backward;
+    nmap <leader>? <Plug>chinese-support-search-backward;
 endif
 
 nnoremap <script><unique> <Plug>chinese-support-search-forward; :call <SID>MySearch(1)<CR>
@@ -325,13 +351,15 @@ augroup ChineseSupportSearch
 augroup END
 
 function! RefreshSearchResult() abort
-    " let wv_origin = winsaveview()
     if s:chinese_search
         call ClearSearchResult()
         call FindMatches(s:last_pattern, s:last_len, -1, 1)
-        call prop_add_list({'type': s:chinese_prop_type}, s:loc->mapnew({_,v->v[:1] + [v[0], v[1] + v[2]]}))
+        call prop_add_list({'type': s:chinese_prop_type}, MapNew(s:loc, function('GetPropAddList')))
     endif
-    " call winrestview(wv_origin)
+endfunction
+
+function! GetPropAddList(idx, loc) abort
+    return a:loc[:1] + [a:loc[0], a:loc[1] + a:loc[2]]
 endfunction
 
 function! ClearSetup() abort
@@ -421,14 +449,32 @@ function! SelectGn() abort
 endfunction
 
 function! CursorIsOnMatch() abort
-    let cur_cursor = getcurpos()
-    let idx = s:loc->indexof('v:val[0]==cur_cursor[1] ' .. 
-                \ '&& v:val[1] <= cur_cursor[2] ' .. 
-                \ '&& v:val[1] + v:val[2] >= cur_cursor[2]')
+    let idx = FindIndex(s:loc, function('IndexOfCursorOn'))
     if idx >= 0 && idx < len(s:loc)
         return s:loc[idx]
     endif
     return []
+endfunction
+
+function! IndexOfCursorOn(loc) abort
+    let cur_cursor = getcurpos()
+    if a:loc[0] == cur_cursor[1] && a:loc[1] <= cur_cursor[2] && a:loc[1] + a:loc[2] >= cur_cursor[2]
+        return 1
+    endif
+    return 0
+endfunction
+
+function! FindIndex(list, func)
+    if empty(a:list)
+        return -1
+    endif
+    for i in range(len(a:list))
+        let e = a:list[i]
+        if a:func(e)
+            return i
+        endif
+    endfor
+    return -1
 endfunction
 
 let &cpo = s:cpo_save
