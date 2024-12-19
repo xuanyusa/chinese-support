@@ -308,10 +308,10 @@ function! s:MySearch(direction) abort
 endfunction
 
 if !hasmapto('<Plug>chinese-support-search-forward;')
-    nnoremap <leader>/ <Plug>chinese-support-search-forward;
+    nmap <leader>/ <Plug>chinese-support-search-forward;
 endif
 if !hasmapto('<Plug>chinese-support-search-backward;')
-    nnoremap <leader>? <Plug>chinese-support-search-backward;
+    nmap <leader>? <Plug>chinese-support-search-backward;
 endif
 
 nnoremap <script><unique> <Plug>chinese-support-search-forward; :call <SID>MySearch(1)<CR>
