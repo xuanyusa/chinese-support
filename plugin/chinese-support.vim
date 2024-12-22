@@ -319,9 +319,9 @@ function! s:MySearch(direction) abort
     let len = pinyin_list->len()
     for e in pinyin_list
         if e =~ '\v\c^' .. s:szm_meta_regexp .. '$'
-            let pattern = pattern .. s:delimiter .. '([^,]{-1,};)?' .. e .. '[^,]{-}'
+            let pattern = pattern .. s:delimiter .. '([^,]{-1,};)*' .. e .. '[^,]{-}'
         else
-            let pattern = pattern .. s:delimiter .. '([^,]{-1,};)?' .. e .. '(;[^,;]{-1,})?'
+            let pattern = pattern .. s:delimiter .. '([^,]{-1,};){-}' .. e .. '(;[^,;]{-1,}){-}'
         endif
     endfor
     call chinese_support#log('待查找的正则 -> ' .. pattern) 
